@@ -1,0 +1,6 @@
+image_shared_topic: '/camera/960x540_BGR3/image_shared'
+in_detections_topic: '/computer_vision/detections'
+in_target_command_topic: '/interface/command_msgs'
+in_sim_control_topic: '/carla/control'
+
+ptu_state_topic: '/driver/ptu_state'

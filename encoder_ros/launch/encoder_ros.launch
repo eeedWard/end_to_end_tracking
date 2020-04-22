@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="encoder_ros_topic_cfg_path" default="$(find encoder_ros)/cfg/TopicParameters.yaml"/>
+    <node ns="encoder" name="encoder_ros" pkg="encoder_ros" type="encoder_ros_node.py" output="screen">
+        <rosparam command="load" file="$(arg encoder_ros_topic_cfg_path)"/>
+    </node>
+
+    <node ns="driver" pkg="topic_tools" type="relay" name="relay_ptu_state_camera_e2e" output="screen"
+          args ="/driver/ptu_state /carla/camera/rgb/camera01/setvelpos">
+    </node>
+    <node ns="driver" pkg="topic_tools" type="relay" name="relay_ptu_state_semseg_e2e" output="screen"
+          args ="/driver/ptu_state /carla/camera/semantic_segmentation/camera_semseg/setvelpos">
+    </node>
+
+</launch>

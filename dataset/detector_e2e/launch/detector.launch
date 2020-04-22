@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+<!--   yolov3_node.py  or yolov3_dn_node.py -->
+    <node ns="end_to_end" name="detector_e2e" pkg="detector_e2e" type="yolov3_node.py" output="screen">
+        <!-- yolov3, yolov3-tiny, yolov3-spp-->
+        <param name="model_name" value="yolov3-spp"/>
+    </node>
+</launch>
