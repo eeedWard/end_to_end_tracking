@@ -27,11 +27,6 @@ class Predictor:
             self.dataset_dir = self.dataset_general_dir + "/datasets/predictor_ds_linear_interp"
             self.val_dataset_dir = self.dataset_general_dir + "/datasets/predictor_val_linear_ds"
 
-        # validation_split = 10
-        # self.dataset = PredictorDataset(self.dataset_dir, prev_img_number=prev_img_number)
-        # self.train_set, self.val_set = torch.utils.data.random_split(self.dataset, [
-        #     len(self.dataset) - int(len(self.dataset) / validation_split), int(len(self.dataset) / validation_split)])
-
         if not inference_mode:
             self.train_set = PredictorDataset(self.dataset_dir, prev_img_number=prev_img_number)
             self.val_set = PredictorDataset(self.val_dataset_dir, prev_img_number=prev_img_number)
@@ -96,21 +91,14 @@ class Predictor:
         writer = SummaryWriter(self.dataset_general_dir + log_dir)
 
         last_lr = None
-        # t_end_batch = datetime.now() #just to initialize the variable
         for epoch in range(epoch_init, epochs):
             self.net.train()
             t0_epoch = datetime.now()
             running_loss = []
             imgs_in_grid = 0
             for batch_idx, sample_batched in enumerate(train_loader):
-                # t0_batch = datetime.now()
-                # print("batch loaded in: ", (t0_batch-t_end_batch).total_seconds(), " seconds")
-
                 for key in sample_batched:
                     sample_batched[key] = sample_batched[key].to(self.device)
-
-                # writer.add_graph(self.net, sample_batched)
-
                 prev_imgs, commands_dx, commands_dy, target = sample_batched['prev_imgs'], \
                                                               sample_batched['commands_dx'], \
                                                               sample_batched['commands_dy'], \
@@ -120,7 +108,6 @@ class Predictor:
                 loss = self.loss(net_out, target)
                 optimizer.zero_grad()
                 loss.backward()
-                # plot_grad_weight(self.net.named_parameters(), writer, epoch, 0.02)
                 optimizer.step()
 
                 running_loss.append(loss.item())
@@ -147,9 +134,6 @@ class Predictor:
                                                      img_3=draw_rect_on_tensor(net_out[random_sample, :, :, :].cpu(), grid_lines_size))
                         imgs_in_grid += 1
                         writer.add_image("Epoch_{}/training_{}".format(epoch, imgs_in_grid//9), img_grid, n_data_analysed)
-
-                # print("batch analysed in: ", (datetime.now()-t0_batch).total_seconds(), " seconds")
-                # t_end_batch = datetime.now()
 
             print("Epoch train in: ", (datetime.now() - t0_epoch).total_seconds(), " seconds. Optimizer: {}".format(optimizer))
 
@@ -198,8 +182,6 @@ class Predictor:
                                          .format(last_lr, scheduler._last_lr[0], epoch, n_data_analysed))
                 last_lr = scheduler._last_lr[0]
 
-            # t_end_batch = datetime.now()
-
         writer.close()
         total_training_time = (datetime.now() - initial_time).total_seconds()
         print()
@@ -231,8 +213,6 @@ class Predictor:
         return eval_loss, change_cmd_out_dict_list
 
     def eval_change_cmd(self, sample_batched, sample_idx):
-        # t0 = datetime.now()
-
         cmds_change_factor = [1.0, 0.0, -1.0]
         mod_number = len(cmds_change_factor)
         prev_imgs_number = sample_batched['commands_dx'][sample_idx, :].size()[0]
@@ -276,8 +256,6 @@ class Predictor:
             'target': sample_mod['target'],
             'net_out': net_out,
         }
-
-        # print("Model eval change cmd in: ", (datetime.now()-t0).total_seconds(), " seconds")
         return change_cmd_out_dict
 
     def run(self, sample):
@@ -419,20 +397,10 @@ if __name__ == "__main__":
     # mode = "generate_triplets_ds"
 
     if mode == "train":
-        # print(predictor.net)
         print('number of trainable parameters %s millions ' % (count_parameters(predictor.net) / 1e6))
         print('dataset length: train: {}, validation: {} \n'.format(len(predictor.train_set),
                                                                     len(predictor.val_set)))
         predictor.train(load_prev_model=False, learning_rate=1e-3, batch_size=64)
-        # del predictor
-        # predictor = Predictor(prev_img_number=5)
-        # predictor.train(load_prev_model=False, learning_rate=1e-3, batch_size=64)
-        # del predictor
-        # predictor = Predictor(prev_img_number=5, notes="Plateau scheduler + different batch sizes")
-        # predictor.train(load_prev_model=False, learning_rate=0.5e-3, batch_size=16)
-        # del predictor
-        # predictor = Predictor(prev_img_number=5, notes="Plateau scheduler + different batch sizes, pan & tilt")
-        # predictor.train(load_prev_model=False, learning_rate=1e-4, batch_size=32)
 
     if mode == "run":
         dataset = PredictorDataset(predictor.dataset_dir, prev_img_number=5)
